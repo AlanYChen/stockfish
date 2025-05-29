@@ -10,6 +10,8 @@ use crate::engine_output::EngineOutput;
 pub struct Stockfish {
     interactive_process: InteractiveProcess,
     receiver: Receiver<String>,
+    depth: u32,
+    version: Option<String>,
 }
 
 impl Stockfish {
@@ -26,25 +28,29 @@ impl Stockfish {
             }
         })?;
 
-        rx.recv().expect("should be able to read first line from rx");
+        let first_line = rx.recv().expect("stockfish process should have outputted a first line");
+        let version = first_line.split(" ").nth(1).map(|s| s.to_string());
 
         Ok(Stockfish { 
             interactive_process: proc,
             receiver: rx,
+            depth: 15,
+            version
         })
     }
 
-    pub fn setup_for_new_game(&mut self, start_pos: &str) -> io::Result<()> {
+    pub fn setup_for_new_game(&mut self) -> io::Result<()> {
         self.ensure_ready()?;
         self.send("ucinewgame")?;
-
-        if start_pos == "s" {
-            self.send("position startpos")?;
-        } else {
-            let msg = String::from("position fen ") + &start_pos;
-            self.send(&msg)?;
-        }
-
+        Ok(())
+    }
+    pub fn set_fen_position(&mut self, fen: &str) -> io::Result<()> {
+        let msg = String::from("position fen ") + fen;
+        self.send(&msg)?;
+        Ok(())
+    }
+    pub fn reset_position(&mut self) -> io::Result<()> {
+        self.send("position startpos")?;
         Ok(())
     }
 
@@ -82,17 +88,22 @@ impl Stockfish {
         Ok(())
     }
 
-    pub fn go_to_depth(&mut self, depth: u8) -> io::Result<EngineOutput> {
-        let message = String::from("go depth ") + &depth.to_string();
+    pub fn go(&mut self) -> io::Result<EngineOutput> {
+        let message = String::from("go depth ") + &self.depth.to_string();
         self.send(&message)?;
         self.get_engine_output()
+    }
+    pub fn set_depth(&mut self, depth: u32) {
+        self.depth = depth;
     }
 
     pub fn get_engine_output(&mut self) -> io::Result<EngineOutput> {
         let fen = self.get_fen()?;
+
+        // The output from stockfish normally displays the value of the evaluation score
+        // relative to the player with the current move. Use a multiplier to flip it such that
+        // the score is not relative to the player with the current move.
         let color_multiplier = if fen.contains("w") {1} else {-1};
-        // Stockfish shows advantage relative to current player. This function will instead
-        // use positive to represent advantage white, and negative for advantage black.
 
         let mut previous_line: Option<String> = None;
 
@@ -121,7 +132,7 @@ impl Stockfish {
                 }
             }
 
-            let score_type = EvalType::from_str(score_type.unwrap());
+            let score_type = EvalType::from_descriptor(score_type.unwrap());
             let eval = EngineEval::new(score_type, score_value.unwrap());
 
             let best_move = segments.next().expect("should be able to get second segment")
@@ -132,7 +143,7 @@ impl Stockfish {
         }
     }
 
-    pub fn print_board(&mut self) -> io::Result<()> {
+    pub fn get_board_display(&mut self) -> io::Result<String> {
         self.send("d")?;
 
         let mut lines: Vec<String> = Vec::with_capacity(20);
@@ -150,7 +161,11 @@ impl Stockfish {
                 lines.push(line);
             }
         }
-        println!("{}", lines.join("\n"));
+        Ok(lines.join("\n"))
+    }
+    pub fn print_board(&mut self) -> io::Result<()> {
+        let board_display = self.get_board_display()?;
+        println!("{board_display}");
         Ok(())
     }
 
@@ -159,9 +174,12 @@ impl Stockfish {
         self.send(&format!("setoption name Hash value {hash}"))
     }
 
+    pub fn get_version(&self) -> &Option<String> {
+        &self.version
+    }
+
     /* Private Methods */
     fn read_line(&mut self) -> String {
-        let line = self.receiver.recv().expect("should be able to read from receiver");
-        line
+        self.receiver.recv().expect("should be able to read from receiver")
     }
 }

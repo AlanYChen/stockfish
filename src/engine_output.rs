@@ -10,7 +10,7 @@ pub struct EngineOutput {
 
 impl EngineOutput {
     pub fn new(eval: EngineEval, best_move: String) -> Self {
-        Self { eval: eval, best_move: best_move }
+        Self { eval, best_move }
     }
     pub fn eval(&self) -> EngineEval {
         self.eval

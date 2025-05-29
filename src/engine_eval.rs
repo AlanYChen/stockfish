@@ -5,7 +5,7 @@ use serde::{Serialize, Serializer};
 pub enum EvalType {Centipawn, Mate}
 
 impl EvalType {
-    pub fn from_str(str: &str) -> EvalType {
+    pub fn from_descriptor(str: &str) -> EvalType {
         match str {
             "cp" => EvalType::Centipawn,
             "mate" => EvalType::Mate,
@@ -38,7 +38,7 @@ pub struct EngineEval {
 
 impl EngineEval {
     pub fn new(eval_type: EvalType, value: i32) -> Self {
-        Self { eval_type: eval_type, value: value }
+        Self { eval_type, value }
     }
     pub fn eval_type(&self) -> EvalType {
         self.eval_type
