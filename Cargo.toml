@@ -7,7 +7,7 @@ license-file = "LICENSE"
 description = "A Rust library for interacting with a running Stockfish process"
 homepage = "https://github.com/AlanYChen/stockfish"
 repository = "https://github.com/AlanYChen/stockfish"
-readme = "README"
+readme = "README.md"
 keywords = ["stockfish", "chess", "uci", "process", "engine"]
 categories = ["games"]
 
