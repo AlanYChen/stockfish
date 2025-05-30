@@ -13,6 +13,8 @@ fn main() -> Result<(), std::io::Error> {
 
     println!("Stockfish version: {:?}", stockfish.get_version());
 
+    stockfish.set_depth(20); // Optional; default depth is 15
+
     let engine_output = stockfish.go()?;
     println!("engine_output: {engine_output:?}");
 
