@@ -1,5 +1,8 @@
 # stockfish
 
+[![crates-io](https://img.shields.io/crates/v/stockfish.svg)](https://crates.io/crates/stockfish)
+[![api-docs](https://docs.rs/stockfish/badge.svg)](https://docs.rs/stockfish)
+
 A wrapper library for simple incorporation of the Stockfish chess engine into Rust. Requires an installation of the engine to be present. (May be sourced here: [stockfishchess.org](https://stockfishchess.org/download/).)
 
 ## Usage

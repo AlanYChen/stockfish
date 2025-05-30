@@ -1,13 +1,13 @@
 [package]
 name = "stockfish"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "A lightweight wrapper library for the Stockfish chess engine" 
 repository = "https://github.com/AlanYChen/stockfish"
+documentation = "https://docs.rs/stockfish"
 readme = "README.md"
 keywords = ["chess", "engine", "stockfish"]
-categories = ["games"]
 
 [dependencies]
 interactive_process = "0.1.3"
