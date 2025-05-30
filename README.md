@@ -1,14 +1,61 @@
 # stockfish
 
-A small Rust library for creating and interacting with a running Stockfish process.
+A wrapper library for simple incorporation of the Stockfish chess engine into Rust.
 
-Requires the stockfish engine to be installed. ([stockfishchess.org](https://stockfishchess.org/download/)) The path to the binary file is to be specified in the constructor. 
+## Usage
+
+The constructor will take the path to the Stockfish executable. (May be sourced here: [stockfishchess.org](https://stockfishchess.org/download/).)
 
 ```rust
-let stockfish = Stockfish::new("path/to/stockfish");
+let mut stockfish = Stockfish::new("path/to/stockfish");
 ```
 
-A longer example:
+Once created, setup the engine:
+
+```rust
+stockfish.setup_for_new_game()?;
+```
+
+Direct the engine to the desired position on the board; this may be done through a sequence of moves from the regular starting position:
+
+```rust
+stockfish.play_moves(&["e2e4", "c7c5"])?;
+```
+
+Or through setting its position via Forsyth-Edwards notation ([FEN](https://www.chessprogramming.org/Forsyth-Edwards_Notation)):
+
+```rust
+let fen = "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/\
+R1BQKB1R w KQkq - 0 1";
+stockfish.set_fen_position(fen)?;
+```
+
+Then, calculation may be initiated through various methods, the simplest of which
+is `go`, which makes Stockfish calculate until it reaches a certain depth:
+
+```rust
+stockfish.set_depth(20); // Optional; default depth is 15
+let engine_output = stockfish.go()?;
+```
+
+The returned `EngineOutput` may be worked with like so:
+
+```rust
+let best_move = engine_output.best_move();
+println!("Best move according to Stockfish: {best_move}");
+
+let eval = engine_output.eval();
+match eval.eval_type() {
+    EvalType::Centipawn => {
+        println!("Eval: {} centipawns", eval.value());
+    }
+    EvalType::Mate => {
+        println!("Eval: Mate in {}", eval.value());
+    }
+};
+```
+
+## A longer example
 
 ```rust
 use stockfish::Stockfish;
@@ -41,13 +88,15 @@ fn main() -> Result<(), std::io::Error> {
         println!("engine_output: {engine_output:?}");
     }
 
-    stockfish.quit();
+    stockfish.quit()?;
 
     Ok(())
 }
 ```
 
-Some different ways of invoking calculation from stockfish:
+## Other details
+
+Some different ways of invoking calculation from Stockfish:
 
 ```rust
 // Have stockfish calculate for five seconds, then get its output
@@ -63,24 +112,6 @@ let engine_output = stockfish.go_based_on_times(
 );
 ```
 
-Getting more specific information from the returned engine output:
-
-```rust
-let engine_output = stockfish.go()?;
-let best_move = engine_output.best_move();
-println!("Best move according to Stockfish: {best_move}");
-
-let eval= engine_output.eval();
-match eval.eval_type() {
-    EvalType::Centipawn => {
-        println!("Eval: {} centipawns", eval.value());
-    }
-    EvalType::Mate => {
-        println!("Eval: Mate in {}", eval.value());
-    }
-};
-```
-
 Some configuration options:
 
 ```rust
@@ -89,15 +120,4 @@ stockfish.set_threads(6)?;
 
 // Set any UCI option for stockfish
 stockfish.set_option("Move Overhead", "5")?;
-```
-
-FEN-related methods (Forsyth-Edwards Notation):
-
-```rust
-let fen = "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/\
-R1BQKB1R w KQkq - 0 1";
-
-stockfish.set_fen_position(fen)?;
-
-assert_eq!(fen, stockfish.get_fen()?);
 ```

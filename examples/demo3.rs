@@ -20,5 +20,10 @@ fn main() -> Result<(), std::io::Error> {
 
     assert_eq!(fen, stockfish.get_fen()?);
 
+    // Testing
+    let moves = ["e2e4", "e7e5", "f1c4"];
+    stockfish.play_moves(&moves)?;
+    //
+
     Ok(())
 }

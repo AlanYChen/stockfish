@@ -2,9 +2,9 @@ use crate::engine_eval::EngineEval;
 use serde::{Serialize, Serializer};
 use std::fmt;
 
-/// Combination of EngineEval and the best move as returned from the engine.
-/// The best move is given as a string, and is described according to Long UCI
-/// algebraic notation (e.g., "e2e4"; "g7g8q" describes a promotion.)
+/// The sum of the output from the engine. Includes [`EngineEval`] and a string
+/// representation of the engine's returned best move (given in long algebraic
+/// notation; e.g., `"e2e4"`).
 #[derive(Debug)]
 pub struct EngineOutput {
     eval: EngineEval,
@@ -15,9 +15,13 @@ impl EngineOutput {
     pub fn new(eval: EngineEval, best_move: String) -> Self {
         Self { eval, best_move }
     }
+
+    #[must_use]
     pub fn eval(&self) -> EngineEval {
         self.eval
     }
+
+    #[must_use]
     pub fn best_move(&self) -> &String {
         &self.best_move
     }

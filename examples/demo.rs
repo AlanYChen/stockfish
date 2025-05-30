@@ -28,5 +28,7 @@ fn main() -> Result<(), std::io::Error> {
         println!("engine_output: {engine_output:?}");
     }
 
+    stockfish.quit()?;
+
     Ok(())
 }

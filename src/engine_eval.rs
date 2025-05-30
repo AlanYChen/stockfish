@@ -6,6 +6,14 @@ use serde::{Serialize, Serializer};
 pub enum EvalType {Centipawn, Mate}
 
 impl EvalType {
+
+    /// Creates an [`EvalType`] from a string descriptor. The valid descriptors are:
+    /// - `"cp"`, which translates to [`EvalType::Centipawn`]
+    /// - `"mate"`, which translates to [`EvalType::Mate`]
+    /// 
+    /// # Panics
+    /// 
+    /// This function panics when given a string descriptor that doesn't match those listed above.
     pub fn from_descriptor(str: &str) -> EvalType {
         match str {
             "cp" => EvalType::Centipawn,
@@ -28,8 +36,7 @@ impl Serialize for EvalType {
     }
 }
 
-/// Stores two bits of info: the type of the evaluation (whether it's centipawns or mate in #)
-/// and the numerical value of the evaluation (5 centipawns? Mate in 4?)
+/// Represents the evaluation returned from the engine. Includes [`EvalType`] and a numerical score value.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EngineEval {
     eval_type: EvalType,
@@ -40,9 +47,13 @@ impl EngineEval {
     pub fn new(eval_type: EvalType, value: i32) -> Self {
         Self { eval_type, value }
     }
+
+    #[must_use]
     pub fn eval_type(&self) -> EvalType {
         self.eval_type
     }
+
+    #[must_use]
     pub fn value(&self) -> i32 {
         self.value
     }
@@ -50,7 +61,7 @@ impl EngineEval {
 impl fmt::Display for EngineEval {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let str = self.eval_type().to_string() + " " + &self.value().to_string();
-        write!(f, "{}", str)
+        write!(f, "{str}")
     }
 }
 impl Serialize for EngineEval {
