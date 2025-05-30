@@ -1,10 +1,10 @@
 # stockfish
 
-A wrapper library for simple incorporation of the Stockfish chess engine into Rust.
+A wrapper library for simple incorporation of the Stockfish chess engine into Rust. Requires an installation of the engine to be present. (May be sourced here: [stockfishchess.org](https://stockfishchess.org/download/).)
 
 ## Usage
 
-The constructor will take the path to the Stockfish executable. (May be sourced here: [stockfishchess.org](https://stockfishchess.org/download/).)
+The constructor will take the path to the Stockfish executable. 
 
 ```rust
 let mut stockfish = Stockfish::new("path/to/stockfish");
