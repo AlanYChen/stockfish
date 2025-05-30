@@ -1,6 +1,9 @@
 use std::fmt;
 use serde::{Serialize, Serializer};
 
+/// Represents the type of the evaluation given by stockfish.
+/// The evaluation is either in `Centipawns`` or in `Mate` (representing
+/// the number of moves in which checkmate can be forced.)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EvalType {Centipawn, Mate}
 
@@ -27,9 +30,8 @@ impl Serialize for EvalType {
     }
 }
 
-/// Engine Eval type
-/// This type is basically just a pair of engine eval type and the value/score
-/// of the evaluation.
+/// Stores two bits of info: the type of the evaluation (whether it's centipawns or mate in #)
+/// and the numerical value of the evaluation (5 centipawns? Mate in 4?)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EngineEval {
     eval_type: EvalType,

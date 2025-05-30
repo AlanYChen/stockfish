@@ -1,4 +1,4 @@
-use ::stockfish::stockfish::Stockfish;
+use stockfish::Stockfish;
 
 fn main() -> Result<(), std::io::Error> {
     let path = if cfg!(target_os = "windows") {
@@ -25,8 +25,6 @@ fn main() -> Result<(), std::io::Error> {
         let engine_output = stockfish.go()?;
         println!("engine_output: {engine_output:?}");
     }
-
-    stockfish.play_move("e2e4")?;
 
     Ok(())
 }

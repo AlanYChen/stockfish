@@ -2,6 +2,9 @@ use crate::engine_eval::EngineEval;
 use serde::{Serialize, Serializer};
 use std::fmt;
 
+/// Combination of EngineEval and the best move as returned from the engine.
+/// The best move is given as a string, and is described according to Long UCI
+/// algebraic notation (e.g., "e2e4"; "g7g8q" describes a promotion.)
 #[derive(Debug)]
 pub struct EngineOutput {
     eval: EngineEval,

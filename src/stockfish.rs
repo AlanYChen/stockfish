@@ -7,6 +7,8 @@ use interactive_process::InteractiveProcess;
 use crate::engine_eval::{EngineEval, EvalType};
 use crate::engine_output::EngineOutput;
 
+/// Wraps an InteractiveProcess in an interface for interacting with the
+/// Stockfish process.
 pub struct Stockfish {
     interactive_process: InteractiveProcess,
     receiver: Receiver<String>,
@@ -15,6 +17,10 @@ pub struct Stockfish {
 }
 
 impl Stockfish {
+
+    /// Given the path to the stockfish binary executable, this function
+    /// initiates an InteractiveProcess for the executable, and returns an instance
+    /// of the Stockfish wrapper class.
     pub fn new(stockfish_path: &str) -> io::Result<Stockfish> {
         let mut command = Command::new(stockfish_path);
 
@@ -39,32 +45,42 @@ impl Stockfish {
         })
     }
 
+    /// Prepares the Stockfish process for a new game. Should be called
+    /// to indicate to the engine that the next position it will be evaluating
+    /// will be from a different game.
     pub fn setup_for_new_game(&mut self) -> io::Result<()> {
         self.ensure_ready()?;
         self.send("ucinewgame")?;
         Ok(())
     }
+
+    /// Changes the current chess position in which Stockfish is currently playing.
+    /// The argument to be passed is a string in FEN (Forsyth-Edwards Notation).
     pub fn set_fen_position(&mut self, fen: &str) -> io::Result<()> {
         let msg = String::from("position fen ") + fen;
         self.send(&msg)?;
         Ok(())
     }
+
+    /// Reverts the current chess position to the default starting position.
+    /// This is the same as calling set_fen_position() with the default
+    /// fen. (rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1)
     pub fn reset_position(&mut self) -> io::Result<()> {
         self.send("position startpos")?;
         Ok(())
     }
 
+    /// This should be called to ensure that the Stockfish process is ready
+    /// to receive its inputs. Sends the UCI command "isready" to Stockfish
+    /// and blocks until it sends back "readyok".
     pub fn ensure_ready(&mut self) -> io::Result<()> {
         self.send("isready")?;
         while self.read_line() != "readyok" {}
         Ok(())
     }
 
-    pub fn send(&mut self, data: &str) -> io::Result<()> {
-        self.interactive_process.send(data)?;
-        Ok(())
-    }
-
+    /// Returns the FEN (Forsyth-Edwards Notation) of the current chess
+    /// position in which Stockfish is playing.
     pub fn get_fen(&mut self) -> io::Result<String> {
         self.send("d")?;
         loop {
@@ -81,6 +97,8 @@ impl Stockfish {
         }
     }
 
+    /// Plays a move on the current chess position in which Stockfish is playing.
+    /// This function only updates the board, and does nothing else.
     pub fn play_move(&mut self, move_str: &str) -> io::Result<()> {
         let fen = self.get_fen()?;
         let data = format!("position fen {fen} moves {move_str}");
@@ -88,15 +106,23 @@ impl Stockfish {
         Ok(())
     }
 
+    /// Makes Stockfish calculate to the depth that has been set. (The default
+    /// depth is 15.) Once Stockfish has finished its calculations, this function
+    /// will return an `EngineOutput` to describe the result of its calculations.
     pub fn go(&mut self) -> io::Result<EngineOutput> {
         let message = String::from("go depth ") + &self.depth.to_string();
         self.send(&message)?;
         self.get_engine_output()
     }
+
+    /// Configures the depth to which Stockfish will calculate. When `go()` is
+    /// called, this depth will be used to determine how deeply Stockfish will
+    /// calculate.
     pub fn set_depth(&mut self, depth: u32) {
         self.depth = depth;
     }
 
+    /// 
     pub fn get_engine_output(&mut self) -> io::Result<EngineOutput> {
         let fen = self.get_fen()?;
 
@@ -170,15 +196,24 @@ impl Stockfish {
     }
 
     /* Accessory Methods */
+
     pub fn set_hash(&mut self, hash: u32) -> io::Result<()> {
         self.send(&format!("setoption name Hash value {hash}"))
     }
+    pub fn set_threads(&mut self, threads: u32) -> io::Result<()> {
+        self.send(&format!("setoption name Threads value {threads}"))
+    }
 
+    /// Returns 
     pub fn get_version(&self) -> &Option<String> {
         &self.version
     }
 
     /* Private Methods */
+    fn send(&mut self, data: &str) -> io::Result<()> {
+        self.interactive_process.send(data)?;
+        Ok(())
+    }
     fn read_line(&mut self) -> String {
         self.receiver.recv().expect("should be able to read from receiver")
     }
