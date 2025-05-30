@@ -1,9 +1,7 @@
 use std::fmt;
 use serde::{Serialize, Serializer};
 
-/// Represents the type of the evaluation given by stockfish.
-/// The evaluation is either in `Centipawns`` or in `Mate` (representing
-/// the number of moves in which checkmate can be forced.)
+/// The category of evaluation returned by stockfish. Either `Centipawns` or `Mate`.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EvalType {Centipawn, Mate}
 

@@ -51,11 +51,34 @@ Some different ways of invoking calculation from stockfish:
 
 ```rust
 // Have stockfish calculate for five seconds, then get its output
-let engine_output = stockfish.go_for(Duration::from_millis(5000))?;
+let engine_output = stockfish.go_for(
+    Duration::from_millis(5000)
+)?;
 
 // Have stockfish calculate for a variable amount of time based on
-// the players' move times in the chess game (expressed in milliseconds)
-let engine_output = stockfish.go_based_on_times(Some(60_000), Some(60_000));
+// the players' move times in the chess game
+// (expressed in milliseconds)
+let engine_output = stockfish.go_based_on_times(
+    Some(60_000), Some(60_000)
+);
+```
+
+Getting more specific information from the returned engine output:
+
+```rust
+let engine_output = stockfish.go()?;
+let best_move = engine_output.best_move();
+println!("Best move according to Stockfish: {best_move}");
+
+let eval= engine_output.eval();
+match eval.eval_type() {
+    EvalType::Centipawn => {
+        println!("Eval: {} centipawns", eval.value());
+    }
+    EvalType::Mate => {
+        println!("Eval: Mate in {}", eval.value());
+    }
+};
 ```
 
 Some configuration options:
@@ -68,14 +91,13 @@ stockfish.set_threads(6)?;
 stockfish.set_option("Move Overhead", "5")?;
 ```
 
-FEN-related methods:
+FEN-related methods (Forsyth-Edwards Notation):
 
 ```rust
-let fen = "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 0 1";
+let fen = "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/\
+R1BQKB1R w KQkq - 0 1";
 
 stockfish.set_fen_position(fen)?;
 
 assert_eq!(fen, stockfish.get_fen()?);
 ```
-
-(Note: Very much work-in-progress! This is my first crate.)

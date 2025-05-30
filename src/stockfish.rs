@@ -1,15 +1,16 @@
-use std::io;
-use std::process::Command;
-use std::sync::{mpsc, mpsc::Receiver};
-use std::time::Duration;
+use std::{
+    io,
+    process::Command,
+    sync::{mpsc, mpsc::Receiver},
+    time::Duration,
+};
 
 use interactive_process::InteractiveProcess;
 
 use crate::engine_eval::{EngineEval, EvalType};
 use crate::engine_output::EngineOutput;
 
-/// Wraps an `InteractiveProcess` in an interface for interacting with the
-/// stockfish process.
+/// An interface for interacting with a stockfish process
 pub struct Stockfish {
     interactive_process: InteractiveProcess,
     receiver: Receiver<String>,
@@ -22,8 +23,15 @@ impl Stockfish {
     /// Given the path to the stockfish binary executable, this function
     /// initiates an `InteractiveProcess` for the executable, and returns an instance
     /// of the `Stockfish` wrapper class.
-    pub fn new(stockfish_path: &str) -> io::Result<Stockfish> {
-        let mut command = Command::new(stockfish_path);
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use stockfish::Stockfish;
+    /// let stockfish = Stockfish::new("stockfish.exe").unwrap();
+    /// ```
+    pub fn new(path: &str) -> io::Result<Stockfish> {
+        let mut command = Command::new(path);
 
         let (tx, rx) = mpsc::channel();
 
@@ -182,7 +190,8 @@ impl Stockfish {
                 if *segment == "score" {
                     score_type = Some(previous_segments[i + 1]);
                     score_value = Some(
-                        previous_segments[i + 2].parse::<i32>().expect("should be able to parse score_value from stockfish info line in output")
+                        previous_segments[i + 2].parse::<i32>()
+                            .expect("should be able to parse score_value")
                             * color_multiplier);
                     break;
                 }
@@ -191,7 +200,8 @@ impl Stockfish {
             let score_type = EvalType::from_descriptor(score_type.unwrap());
             let eval = EngineEval::new(score_type, score_value.unwrap());
 
-            let best_move = segments.next().expect("should be able to get second segment")
+            let best_move = segments.next()
+                .expect("should be able to get second segment")
                 .to_owned();
 
             let output = EngineOutput::new(eval, best_move);
@@ -212,7 +222,8 @@ impl Stockfish {
                 continue;
             }
 
-            let first_segment = line.split(" ").next().expect("non-empty line should have segment");
+            let first_segment = line.split(" ").next()
+                .expect("non-empty line should have segment");
             if first_segment == "Fen:" {
                 break
             } else {
@@ -253,16 +264,36 @@ impl Stockfish {
     /// Value is given in megabytes. Generally, the larger the table, the
     /// faster the engine will run.
     pub fn set_hash(&mut self, hash: u32) -> io::Result<()> {
-        self.send(&format!("setoption name Hash value {hash}"))
+        self.set_option("Hash", &hash.to_string())
     }
 
     /// Sets the number of threads that stockfish will use.
     pub fn set_threads(&mut self, threads: u32) -> io::Result<()> {
-        self.send(&format!("setoption name Threads value {threads}"))
+        self.set_option("Threads", &threads.to_string())
+    }
+
+    /// Sets the elo at which stockfish will aim to play.
+    /// 
+    /// Similar to `set_skill_level` in functionality, however, calling
+    /// either one of these two functions will override the effect of the other.
+    pub fn set_elo(&mut self, elo: u32) -> io::Result<()> {
+        self.set_option("UCI_LimitStrength", "true")?;
+        self.set_option("Elo", &elo.to_string())
+    }
+
+    /// Sets the skill level at which stockfish will aim to play. Skill level
+    /// is given between 0 and 20 (from weakest to strongest).
+    /// 
+    /// Similar to `set_elo` in functionality, however, calling either one of
+    /// these two functions will override the effect of the other.
+    pub fn set_skill_level(&mut self, skill_level: u32) -> io::Result<()> {
+        self.set_option("UCI_LimitStrength", "false")?;
+        self.set_option("Skill Level", &skill_level.to_string())
     }
 
     /// Returns a string representing the version of stockfish being run.
-    /// Returns none if the version wasn't able to be parsed.
+    /// Returns None if the version wasn't able to be parsed from stockfish's
+    /// output.
     pub fn get_version(&self) -> &Option<String> {
         &self.version
     }
