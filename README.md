@@ -1,5 +1,5 @@
 # stockfish
-![Static Badge](https://img.shields.io/badge/crates.io-stockfish-orange?link=https%3A%2F%2Fcrates.io%2Fcrates%2Fstockfish)
+![Crates.io Version](https://img.shields.io/crates/v/stockfish?label=crates.io)
 
 A wrapper library for simple incorporation of the Stockfish chess engine into Rust.
 
