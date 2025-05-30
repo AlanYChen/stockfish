@@ -1,6 +1,6 @@
 [package]
 name = "stockfish"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "A lightweight wrapper library for the Stockfish chess engine" 
