@@ -10,10 +10,10 @@ An [installation](https://stockfishchess.org/download/) of the Stockfish engine 
 
 ## Usage
 
-Using the path to the Stockfish executable, construct an instance. 
+Using the path to the Stockfish executable, construct an instance. (Mind the `?`; it's possible that any of these operations may fail, as they involve IO operations.)
 
 ```rust
-let mut stockfish = Stockfish::new("path/to/stockfish");
+let mut stockfish = Stockfish::new("path/to/stockfish")?;
 ```
 
 Once created, setup the engine:
