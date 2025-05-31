@@ -1,6 +1,6 @@
 [package]
 name = "stockfish"
-version = "0.2.8"
+version = "0.2.9"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "Light, easy-to-use wrapper for the Stockfish engine" 
@@ -11,4 +11,3 @@ keywords = ["chess", "engine", "stockfish"]
 
 [dependencies]
 interactive_process = "0.1.3"
-serde = "1.0.219"

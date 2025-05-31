@@ -15,7 +15,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-stockfish = "0.2.8"
+stockfish = "0.2.9"
 ```
 
 And this to your source code:
