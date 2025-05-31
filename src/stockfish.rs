@@ -35,7 +35,7 @@ impl Stockfish {
     /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
-    /// create/communicate with the engine. 
+    /// create/communicate with the engine.
     pub fn new(path: &str) -> io::Result<Stockfish> {
         let mut command = Command::new(path);
 
@@ -164,7 +164,7 @@ impl Stockfish {
     /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
-    /// communicate with the engine. 
+    /// communicate with the engine.
     pub fn get_fen(&mut self) -> io::Result<String> {
         self.uci_send("d")?;
         loop {
@@ -256,7 +256,7 @@ impl Stockfish {
     /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
-    /// communicate with the engine. 
+    /// communicate with the engine.
     pub fn go(&mut self) -> io::Result<EngineOutput> {
         let message = String::from("go depth ") + &self.depth.to_string();
         self.uci_send(&message)?;
@@ -282,7 +282,7 @@ impl Stockfish {
     /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
-    /// communicate with the engine. 
+    /// communicate with the engine.
     pub fn go_for(&mut self, calculation_time: Duration) -> io::Result<EngineOutput> {
         self.uci_send("go")?;
         std::thread::sleep(calculation_time);
@@ -313,7 +313,7 @@ impl Stockfish {
     /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
-    /// communicate with the engine. 
+    /// communicate with the engine.
     pub fn go_based_on_times(&mut self, white_time: Option<u32>, black_time: Option<u32>) -> io::Result<EngineOutput> {
         let mut message = String::from("go");
         if let Some(time) = white_time {
@@ -404,13 +404,21 @@ impl Stockfish {
             let depth = depth.expect("info line should have score value");
 
             let score_type = EvalType::from_descriptor(score_type);
-            let eval = EngineEval::new(score_type, score_value, depth);
+            let eval = EngineEval::new(score_type, score_value);
 
             let best_move = segments.next()
-                .expect("should be able to get second segment")
+                .expect("should be able to parse stockfish bestmove line")
                 .to_owned();
 
-            let output = EngineOutput::new(eval, best_move);
+            let pondered_move = if segments.next().is_some_and(|str| str == "ponder") {
+                Some(segments.next()
+                    .expect("should be able to parse stockfish ponder entry")
+                    .to_owned())
+            } else {
+                None
+            };
+
+            let output = EngineOutput::new(eval, best_move, pondered_move, depth);
             return Ok(output);
         }
     }
@@ -455,7 +463,7 @@ impl Stockfish {
     /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
-    /// communicate with the engine. 
+    /// communicate with the engine.
     pub fn get_board_display(&mut self) -> io::Result<String> {
         self.uci_send("d")?;
 
@@ -632,6 +640,7 @@ impl Stockfish {
     /// Returns a string representing the version of Stockfish being run.
     /// Returns [`None`] if the version wasn't able to be parsed from Stockfish's
     /// output.
+    #[must_use]
     pub fn get_version(&self) -> &Option<String> {
         &self.version
     }
@@ -662,6 +671,11 @@ impl Stockfish {
     /// 
     /// Use carefully; this function itself does not handle or return output
     /// that may be incurred by the sent command.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn uci_send(&mut self, command: &str) -> io::Result<()> {
         self.interactive_process.send(command)?;
         Ok(())

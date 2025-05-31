@@ -13,6 +13,7 @@ impl EvalType {
     /// # Panics
     /// 
     /// This function panics when given a string descriptor that doesn't match those listed above.
+    #[must_use]
     pub fn from_descriptor(str: &str) -> EvalType {
         match str {
             "cp" => EvalType::Centipawn,
@@ -35,12 +36,13 @@ impl fmt::Display for EvalType {
 pub struct EngineEval {
     eval_type: EvalType,
     value: i32,
-    depth: u32,
 }
 
 impl EngineEval {
-    pub fn new(eval_type: EvalType, value: i32, depth: u32) -> Self {
-        Self { eval_type, value, depth }
+
+    #[must_use]
+    pub fn new(eval_type: EvalType, value: i32) -> Self {
+        Self { eval_type, value }
     }
 
     /// Returns an [`EvalType`] representing what type of evaluation was returned
@@ -57,12 +59,6 @@ impl EngineEval {
     #[must_use]
     pub fn value(&self) -> i32 {
         self.value
-    }
-
-    /// Returns the depth that the engine had gone to when calculating and upon
-    /// returning this output.
-    pub fn depth(&self) -> u32 {
-        self.depth
     }
 }
 impl fmt::Display for EngineEval {

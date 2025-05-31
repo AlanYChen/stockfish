@@ -10,7 +10,7 @@ checksum = "cb1a3c097cfdd0dc4bd03143a587b8cd44b492d763c768b06f7dfecaad7eeda4"
 
 [[package]]
 name = "stockfish"
-version = "0.2.10"
+version = "0.2.11"
 dependencies = [
  "interactive_process",
 ]
