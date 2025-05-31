@@ -11,6 +11,21 @@ An [installation](https://stockfishchess.org/download/) of the Stockfish engine 
 
 ## Usage
 
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+stockfish = "0.2.8"
+```
+
+And this to your source code:
+
+```rust
+use stockfish::Stockfish;
+```
+
+## Example usage
+
 Using the path to the Stockfish executable, construct an instance. (Mind the `?`; it's possible that any of these operations may fail, as they involve IO operations.)
 
 ```rust
