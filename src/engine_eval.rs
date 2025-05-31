@@ -30,26 +30,39 @@ impl fmt::Display for EvalType {
     }
 }
 
-/// Represents the evaluation returned from the engine. Includes [`EvalType`] and a numerical score value.
+/// Represents the evaluation returned from the engine. Includes an [`EvalType`] and a numerical score value.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EngineEval {
     eval_type: EvalType,
     value: i32,
+    depth: u32,
 }
 
 impl EngineEval {
-    pub fn new(eval_type: EvalType, value: i32) -> Self {
-        Self { eval_type, value }
+    pub fn new(eval_type: EvalType, value: i32, depth: u32) -> Self {
+        Self { eval_type, value, depth }
     }
 
+    /// Returns an [`EvalType`] representing what type of evaluation was returned
+    /// from the engine: whether the evaluation is expressed in centipawns or as
+    /// mate in a certain number of moves.
     #[must_use]
     pub fn eval_type(&self) -> EvalType {
         self.eval_type
     }
 
+    /// Returns a number representing the numerical value associated with the
+    /// evaluation returned from the engine; this number is expressed in centipawns
+    /// or the number of moves in which mate may be forced (depending on [`EvalType`].)
     #[must_use]
     pub fn value(&self) -> i32 {
         self.value
+    }
+
+    /// Returns the depth that the engine had gone to when calculating and upon
+    /// returning this output.
+    pub fn depth(&self) -> u32 {
+        self.depth
     }
 }
 impl fmt::Display for EngineEval {

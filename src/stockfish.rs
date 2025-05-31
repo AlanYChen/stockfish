@@ -32,7 +32,7 @@ impl Stockfish {
     /// let stockfish = Stockfish::new("stockfish.exe").unwrap();
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// create/communicate with the engine. 
@@ -71,7 +71,7 @@ impl Stockfish {
     /// stockfish.setup_for_new_game()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -92,7 +92,7 @@ impl Stockfish {
     /// stockfish.print_board()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -117,7 +117,7 @@ impl Stockfish {
     /// stockfish.print_board()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -138,7 +138,7 @@ impl Stockfish {
     /// stockfish.setup_for_new_game()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -161,7 +161,7 @@ impl Stockfish {
     /// println!("fen after move was played: {fen}");
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -197,7 +197,7 @@ impl Stockfish {
     /// stockfish.print_board()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -225,7 +225,7 @@ impl Stockfish {
     /// stockfish.print_board()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -253,7 +253,7 @@ impl Stockfish {
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -279,7 +279,7 @@ impl Stockfish {
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -310,7 +310,7 @@ impl Stockfish {
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -340,7 +340,7 @@ impl Stockfish {
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -365,7 +365,8 @@ impl Stockfish {
         loop {
             let line = self.read_line();
             let mut segments = line.split(' ');
-            let first_segment = segments.next().expect("should be able to get first segment");
+            let first_segment = segments.next()
+                .expect("should be able to get first segment");
             if first_segment != "bestmove" {
                 previous_line = Some(line);
                 continue;
@@ -377,19 +378,33 @@ impl Stockfish {
             let mut score_type = None;
             let mut score_value: Option<i32> = None;
 
+            let mut depth: Option<u32> = None;
+
             for (i, segment) in previous_segments.iter().enumerate() {
-                if *segment == "score" {
+                if *segment == "depth" {
+                    depth = Some(
+                        previous_segments[i + 1].parse()
+                        .expect("should be able to parse stockfish info line")
+                    );
+                } else if *segment == "score" {
                     score_type = Some(previous_segments[i + 1]);
                     score_value = Some(
                         previous_segments[i + 2].parse::<i32>()
-                            .expect("should be able to parse score_value")
+                            .expect("should be able to parse stockfish info line")
                             * color_multiplier);
+                }
+
+                if depth.is_some() && score_type.is_some() {
                     break;
                 }
             }
 
-            let score_type = EvalType::from_descriptor(score_type.unwrap());
-            let eval = EngineEval::new(score_type, score_value.unwrap());
+            let score_type = score_type.expect("info line should have score type");
+            let score_value = score_value.expect("info line should have score value");
+            let depth = depth.expect("info line should have score value");
+
+            let score_type = EvalType::from_descriptor(score_type);
+            let eval = EngineEval::new(score_type, score_value, depth);
 
             let best_move = segments.next()
                 .expect("should be able to get second segment")
@@ -437,7 +452,7 @@ impl Stockfish {
     ///   a   b   c   d   e   f   g   h
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -476,7 +491,7 @@ impl Stockfish {
     /// stockfish.print_board()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -512,7 +527,7 @@ impl Stockfish {
     /// - `"UCI_Elo"`: 1350,
     /// - `"Skill Level"`: 20,
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -531,7 +546,7 @@ impl Stockfish {
     /// stockfish.set_hash(64)?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -551,7 +566,7 @@ impl Stockfish {
     /// stockfish.set_threads(16)?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -577,7 +592,7 @@ impl Stockfish {
     /// let engine_output = stockfish.go()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -605,7 +620,7 @@ impl Stockfish {
     /// let engine_output = stockfish.go()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
@@ -634,7 +649,7 @@ impl Stockfish {
     /// stockfish.quit()?;
     /// ```
     /// 
-    /// # Error
+    /// # Errors
     /// 
     /// Returns an [`io::Error`] if an error occurred while trying to
     /// communicate with the engine. 
