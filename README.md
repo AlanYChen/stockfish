@@ -3,6 +3,7 @@
 [![crates-io](https://img.shields.io/crates/v/stockfish.svg)](https://crates.io/crates/stockfish)
 [![api-docs](https://docs.rs/stockfish/badge.svg)](https://docs.rs/stockfish)
 [![License](https://img.shields.io/crates/l/bitflags.svg)](https://img.shields.io/badge/license-MIT%20or%20Apache2.0-Green)
+[![Crates.io (recent)](https://img.shields.io/crates/dr/stockfish)](https://crates.io/crates/stockfish)
 
 A wrapper library that makes integrating Stockfish with Rust a breeze.
 
