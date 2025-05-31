@@ -11,7 +11,7 @@ use interactive_process::InteractiveProcess;
 use crate::engine_eval::{EngineEval, EvalType};
 use crate::engine_output::EngineOutput;
 
-/// An interface for interacting with a Stockfish process.
+/// The interface for interacting with a Stockfish process.
 pub struct Stockfish {
     interactive_process: InteractiveProcess,
     receiver: Receiver<String>,
@@ -31,6 +31,11 @@ impl Stockfish {
     /// use stockfish::Stockfish;
     /// let stockfish = Stockfish::new("stockfish.exe").unwrap();
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// create/communicate with the engine. 
     pub fn new(path: &str) -> io::Result<Stockfish> {
         let mut command = Command::new(path);
 
@@ -65,9 +70,14 @@ impl Stockfish {
     /// let mut stockfish = Stockfish::new("stockfish.exe")?;
     /// stockfish.setup_for_new_game()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn setup_for_new_game(&mut self) -> io::Result<()> {
         self.ensure_ready()?;
-        self.send("ucinewgame")?;
+        self.uci_send("ucinewgame")?;
         Ok(())
     }
 
@@ -81,9 +91,14 @@ impl Stockfish {
     /// stockfish.set_fen_position("r1bqk2r/ppppppbp/2n2np1/8/8/2N2NP1/PPPPPPBP/R1BQK2R w KQkq - 0 1")?;
     /// stockfish.print_board()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn set_fen_position(&mut self, fen: &str) -> io::Result<()> {
         let msg = String::from("position fen ") + fen;
-        self.send(&msg)?;
+        self.uci_send(&msg)?;
         Ok(())
     }
 
@@ -101,8 +116,13 @@ impl Stockfish {
     /// // See that the board has been reverted to the default position
     /// stockfish.print_board()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn reset_position(&mut self) -> io::Result<()> {
-        self.send("position startpos")?;
+        self.uci_send("position startpos")?;
         Ok(())
     }
 
@@ -117,8 +137,13 @@ impl Stockfish {
     /// stockfish.ensure_ready()?;
     /// stockfish.setup_for_new_game()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn ensure_ready(&mut self) -> io::Result<()> {
-        self.send("isready")?;
+        self.uci_send("isready")?;
         while self.read_line() != "readyok" {}
         Ok(())
     }
@@ -135,8 +160,13 @@ impl Stockfish {
     /// let fen = stockfish.get_fen()?;
     /// println!("fen after move was played: {fen}");
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn get_fen(&mut self) -> io::Result<String> {
-        self.send("d")?;
+        self.uci_send("d")?;
         loop {
             let line = self.read_line();
             let mut segments= line.split(' ');
@@ -166,10 +196,15 @@ impl Stockfish {
     /// // See that the move has been played on the board
     /// stockfish.print_board()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn play_move(&mut self, move_str: &str) -> io::Result<()> {
         let fen = self.get_fen()?;
         let data = format!("position fen {fen} moves {move_str}");
-        self.send(&data)?;
+        self.uci_send(&data)?;
         Ok(())
     }
 
@@ -189,12 +224,17 @@ impl Stockfish {
     /// // See that the moves have been played on the board
     /// stockfish.print_board()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn play_moves(&mut self, moves: &[&str]) -> io::Result<()> {
         let fen = self.get_fen()?;
         let moves = moves.join(" ");
 
         let data = format!("position fen {fen} moves {moves}");
-        self.send(&data)?;
+        self.uci_send(&data)?;
         Ok(())
     }
 
@@ -212,9 +252,14 @@ impl Stockfish {
     /// let engine_output = stockfish.go()?;
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn go(&mut self) -> io::Result<EngineOutput> {
         let message = String::from("go depth ") + &self.depth.to_string();
-        self.send(&message)?;
+        self.uci_send(&message)?;
         self.get_engine_output()
     }
 
@@ -233,10 +278,15 @@ impl Stockfish {
     /// let engine_output = stockfish.go_for(Duration::from_millis(500))?;
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn go_for(&mut self, calculation_time: Duration) -> io::Result<EngineOutput> {
-        self.send("go")?;
+        self.uci_send("go")?;
         std::thread::sleep(calculation_time);
-        self.send("stop")?;
+        self.uci_send("stop")?;
         self.get_engine_output()
     }
 
@@ -259,6 +309,11 @@ impl Stockfish {
     /// )?;
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn go_based_on_times(&mut self, white_time: Option<u32>, black_time: Option<u32>) -> io::Result<EngineOutput> {
         let mut message = String::from("go");
         if let Some(time) = white_time {
@@ -268,7 +323,7 @@ impl Stockfish {
             message += &format!(" btime {time}");
         }
 
-        self.send(&message)?;
+        self.uci_send(&message)?;
         self.get_engine_output()
     }
 
@@ -284,6 +339,11 @@ impl Stockfish {
     /// let engine_output = stockfish.go()?; // Stockfish will calculate to the newly set depth
     /// println!("output from stockfish: {engine_output:?}");
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn set_depth(&mut self, depth: u32) {
         self.depth = depth;
     }
@@ -354,7 +414,7 @@ impl Stockfish {
     /// ```
     /// 
     /// # Illustration
-    /// This is what Stockfish's output looks like:
+    /// Example of the output from Stockfish:
     /// 
     /// ```
     /// +---+---+---+---+---+---+---+---+
@@ -377,9 +437,12 @@ impl Stockfish {
     ///   a   b   c   d   e   f   g   h
     /// ```
     /// 
-    /// (Always shown from the white player's perspective.)
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn get_board_display(&mut self) -> io::Result<String> {
-        self.send("d")?;
+        self.uci_send("d")?;
 
         let mut lines: Vec<String> = Vec::with_capacity(20);
 
@@ -412,6 +475,11 @@ impl Stockfish {
     /// stockfish.play_move("d7d5")?;
     /// stockfish.print_board()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn print_board(&mut self) -> io::Result<()> {
         let board_display = self.get_board_display()?;
         println!("{board_display}");
@@ -443,8 +511,13 @@ impl Stockfish {
     /// - `"UCI_LimitStrength"`: "false",
     /// - `"UCI_Elo"`: 1350,
     /// - `"Skill Level"`: 20,
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn set_option(&mut self, option_name: &str, option_value: &str) -> io::Result<()> {
-        self.send(&format!("setoption name {option_name} value {option_value}"))
+        self.uci_send(&format!("setoption name {option_name} value {option_value}"))
     }
 
     /// Sets the size of Stockfish's hashtable/transposition table.
@@ -457,6 +530,11 @@ impl Stockfish {
     /// let mut stockfish = Stockfish::new("stockfish.exe")?;
     /// stockfish.set_hash(64)?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn set_hash(&mut self, hash: u32) -> io::Result<()> {
         self.set_option("Hash", &hash.to_string())
     }
@@ -468,9 +546,15 @@ impl Stockfish {
     /// # Example
     /// 
     /// ```rust
+    /// 
     /// let mut stockfish = Stockfish::new("stockfish.exe")?;
     /// stockfish.set_threads(16)?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn set_threads(&mut self, threads: u32) -> io::Result<()> {
         self.set_option("Threads", &threads.to_string())
     }
@@ -492,6 +576,11 @@ impl Stockfish {
     /// 
     /// let engine_output = stockfish.go()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn set_elo(&mut self, elo: u32) -> io::Result<()> {
         self.set_option("UCI_LimitStrength", "true")?;
         self.set_option("Elo", &elo.to_string())
@@ -515,6 +604,11 @@ impl Stockfish {
     /// 
     /// let engine_output = stockfish.go()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn set_skill_level(&mut self, skill_level: u32) -> io::Result<()> {
         self.set_option("UCI_LimitStrength", "false")?;
         self.set_option("Skill Level", &skill_level.to_string())
@@ -539,15 +633,26 @@ impl Stockfish {
     /// 
     /// stockfish.quit()?;
     /// ```
+    /// 
+    /// # Error
+    /// 
+    /// Returns an [`io::Error`] if an error occurred while trying to
+    /// communicate with the engine. 
     pub fn quit(&mut self) -> io::Result<()> {
-        self.send("quit")
+        self.uci_send("quit")
+    }
+
+    /// Sends a [UCI](https://gist.github.com/DOBRO/2592c6dad754ba67e6dcaec8c90165bf)
+    /// command to the engine.
+    /// 
+    /// Use carefully; this function itself does not handle or return output
+    /// that may be incurred by the sent command.
+    pub fn uci_send(&mut self, command: &str) -> io::Result<()> {
+        self.interactive_process.send(command)?;
+        Ok(())
     }
 
     /* Private Methods */
-    fn send(&mut self, data: &str) -> io::Result<()> {
-        self.interactive_process.send(data)?;
-        Ok(())
-    }
     fn read_line(&mut self) -> String {
         self.receiver.recv().expect("should be able to read from receiver")
     }

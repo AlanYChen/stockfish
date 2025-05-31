@@ -2,9 +2,9 @@ use crate::engine_eval::EngineEval;
 use serde::{Serialize, Serializer};
 use std::fmt;
 
-/// The sum of the output from the engine. Includes [`EngineEval`] and a string
-/// representation of the engine's returned best move (given in long algebraic
-/// notation; e.g., `"e2e4"`).
+/// Represents the total output from the engine in regards to one specific position.
+/// Contains the engine's score evaluation of the position as well as its
+/// determined best move.
 #[derive(Debug)]
 pub struct EngineOutput {
     eval: EngineEval,

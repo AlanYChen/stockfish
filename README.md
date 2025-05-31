@@ -2,12 +2,15 @@
 
 [![crates-io](https://img.shields.io/crates/v/stockfish.svg)](https://crates.io/crates/stockfish)
 [![api-docs](https://docs.rs/stockfish/badge.svg)](https://docs.rs/stockfish)
+[![License](https://img.shields.io/crates/l/bitflags.svg)](https://img.shields.io/badge/license-MIT%20or%20Apache2.0-Green)
 
-A wrapper library for simple incorporation of the Stockfish chess engine into Rust. Requires an installation of the engine to be present. (May be sourced here: [stockfishchess.org](https://stockfishchess.org/download/).)
+A wrapper library that makes integrating Stockfish with Rust a breeze.
+
+An [installation](https://stockfishchess.org/download/) of the Stockfish engine is needed. (Or any [UCI](https://official-stockfish.github.io/docs/stockfish-wiki/UCI-&-Commands.html)-compatible engine, although this library was mainly written with Stockfish in mind.)
 
 ## Usage
 
-The constructor will take the path to the Stockfish executable. 
+Using the path to the Stockfish executable, construct an instance. 
 
 ```rust
 let mut stockfish = Stockfish::new("path/to/stockfish");
@@ -34,7 +37,7 @@ stockfish.set_fen_position(fen)?;
 ```
 
 Then, calculation may be initiated through various methods, the simplest of which
-is `go`, which makes Stockfish calculate until it reaches a certain depth:
+is `go`, which makes Stockfish calculate until it reaches a certain [depth](https://www.chessprogramming.org/Depth):
 
 ```rust
 stockfish.set_depth(20); // Optional; default depth is 15
@@ -115,11 +118,13 @@ let engine_output = stockfish.go_based_on_times(
 );
 ```
 
-Some configuration options:
+Some configuration options (of which the most likely to be changed
+would be [hash table size](https://www.chessprogramming.org/Hash_Table)
+and [thread count](https://official-stockfish.github.io/docs/stockfish-wiki/UCI-&-Commands.html#threads)):
 
 ```rust
-stockfish.set_hash(64)?;
 stockfish.set_threads(6)?;
+stockfish.set_hash(64)?;
 
 // Set any UCI option for stockfish
 stockfish.set_option("Move Overhead", "5")?;

@@ -1,9 +1,9 @@
 [package]
 name = "stockfish"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2024"
 license = "MIT OR Apache-2.0"
-description = "A lightweight wrapper library for the Stockfish chess engine" 
+description = "Light, easy-to-use wrapper for the Stockfish engine" 
 repository = "https://github.com/AlanYChen/stockfish"
 documentation = "https://docs.rs/stockfish"
 readme = "README.md"

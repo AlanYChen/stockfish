@@ -1,7 +1,7 @@
-//! `stockfish` is a lightweight wrapper library for the Stockfish chess engine.
+//! `stockfish` is a light, easy-to-use wrapper library for the Stockfish chess engine.
 //! 
 //! - **Creation & Setup** — Pass the path to the binary executable to [`Stockfish::new`],
-//! and then call [`Stockfish::setup_for_new_game`] to ensure that it is ready for further
+//! then call [`Stockfish::setup_for_new_game`] to ensure that it is ready for further
 //! commands.
 //! - **Position** — Use methods like [`Stockfish::set_fen_position`] and 
 //! [`Stockfish::play_moves`] to configure the chess position that Stockfish is working with.
